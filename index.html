@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aprende Arduino - Curso Completo (Nivel 1 a 5)</title>
+  <!-- PWA: favicon e iconos -->
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16.png">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#00979D">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            arduinoteal: '#00979D',
+            arduinodark: '#008184',
+            arduinolight: '#00a3a8',
+            codebg: '#1e1e2e'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Fira Code', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+    .active-nav {
+      background-color: rgba(0, 151, 157, 0.15);
+      border-left: 4px solid #00979D;
+      color: #008184;
+      font-weight: 600;
+    }
+    /* Chip de versión junto al título */
+    .version-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      background-color: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      color: #ffffff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      font-family: 'Fira Code', monospace;
+      padding: 0.1rem 0.5rem;
+      border-radius: 9999px;
+      line-height: 1.2;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- Header Section -->
+  <header class="bg-gradient-to-r from-teal-800 via-arduinoteal to-teal-700 text-white shadow-lg sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="navigateTo('home')">
+        <div class="bg-white p-2 rounded-lg text-arduinoteal text-2xl shadow">
+          <i class="fa-solid fa-microchip"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
+            Arduino Academy
+            <span id="versionChip" class="version-chip" title="Versión de la aplicación"><i class="fa-solid fa-tag text-[0.6rem]"></i> v—</span>
+          </h1>
+          <p class="text-xs text-teal-100 hidden sm:block">De "Nivel Perdío" a "Arduineitor" — Manuales de Daniel Gallardo</p>
+        </div>
+      </div>
+
+      <!-- Global Search & Mobile Toggle -->
+      <div class="flex items-center space-x-3">
+        <div class="relative w-48 sm:w-64">
+          <input type="text" id="searchInput" onkeyup="searchTopics()" placeholder="Buscar práctica..." class="w-full bg-teal-900/60 text-white placeholder-teal-200 text-sm rounded-full pl-9 pr-4 py-1.5 focus:outline-none focus:ring-2 focus:ring-white border border-teal-500/30">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-teal-200 text-xs"></i>
+          <!-- Search Dropdown -->
+          <div id="searchResults" class="hidden absolute right-0 mt-2 w-72 bg-white text-slate-800 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto border border-slate-200"></div>
+        </div>
+
+        <button onclick="toggleSidebar()" class="md:hidden text-white p-2 text-xl focus:outline-none">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="flex-1 max-w-7xl w-full mx-auto flex flex-col md:flex-row">
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="w-full md:w-80 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col transition-all duration-300 md:block hidden">
+      <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Índice del Curso</span>
+        <span id="overallProgress" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-teal-100 text-teal-800">0% Completado</span>
+      </div>
+
+      <nav class="flex-1 overflow-y-auto p-3 space-y-4" id="navigationMenu">
+        <!-- JS builds menu dynamically -->
+      </nav>
+    </aside>
+
+    <!-- Content Display Area -->
+    <main class="flex-1 p-4 sm:p-6 lg:p-8 bg-slate-50 overflow-y-auto min-h-[80vh]">
+      <div id="contentArea" class="max-w-4xl mx-auto bg-white rounded-xl shadow-sm border border-slate-200/80 p-6 sm:p-8">
+        <!-- Dynamic Content Injected Here -->
+      </div>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-400 py-6 border-t border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 text-center text-sm space-y-2">
+      <p><i class="fa-solid fa-graduation-cap text-teal-400 mr-1"></i> Basado en el material didáctico de <strong>Daniel Gallardo García</strong> (Profesor de Tecnología, Jerez de la Frontera).</p>
+      <p class="text-xs text-slate-500">Plataforma Web interactiva estructurada por Niveles y Subpáginas para aprendizaje de Arduino UNO.</p>
+    </div>
+  </footer>
+
+  <!-- DATA & LOGIC SCRIPT -->
+  <script>
+    // DATA STRUCTURE FOR THE 5 LEVELS AND THEIR SUB-PRACTICES
+    const courseData = [
+      {
+        id: "nivel1",
+        title: "Nivel 1: Perdío",
+        icon: "fa-seedling",
+        color: "emerald",
+        badge: "Fundamentos",
+        desc: "Fundamentos teóricos, componentes básicos, simbología y arquitectura de la placa Arduino UNO.",
+        topics: [
+          {
+            id: "n1_intro",
+            title: "¿Qué es Arduino / Genuino?",
+            type: "Teoría",
+            desc: "Conceptos sobre la plataforma de hardware libre, microcontrolador ATmega328P y despiece de componentes.",
+            content: `
+              <h2 class="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-microchip text-emerald-600"></i> ¿Qué es Arduino / Genuino?</h2>
+              <p class="mb-4 text-slate-600 leading-relaxed">Arduino es una placa o tarjeta controladora de hardware libre, provista de entradas y salidas digitales y analógicas, que se programa desde el ordenador mediante una adaptación de C/C++ basada en Processing.</p>
+              
+              <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 mb-6 rounded-r">
+                <h3 class="font-bold text-emerald-900 mb-1">Elementos principales de Arduino UNO:</h3>
+                <ul class="list-disc list-inside text-sm text-emerald-800 space-y-1">
+                  <li><strong>Microcontrolador ATmega328P:</strong> El "cerebro" que ejecuta el código guardado.</li>
+                  <li><strong>Puerto USB:</strong> Utilizado para subir programas y para comunicación serie con el PC.</li>
+                  <li><strong>Conector de Alimentación (Jack):</strong> Permite alimentar con pila o fuente externa (7V - 12V).</li>
+                  <li><strong>Pines Digitales (0 a 13):</strong> Leen entradas On/Off o envían salidas HIGH/LOW. Los marcados con ~ admiten PWM.</li>
+                  <li><strong>Pines Analógicos (A0 a A5):</strong> Lectura de sensores con variación analógica (0 a 1023).</li>
+                  <li><strong>Pines de Alimentación (5V, 3.3V, GND, Vin):</strong> Para alimentar los componentes en la protoboard.</li>
+                </ul>
+              </div>
+
+              <!-- Interactive Diagram Component -->
+              <div class="bg-slate-900 text-white p-6 rounded-xl shadow-lg my-6">
+                <h3 class="text-lg font-bold text-teal-400 mb-2 flex items-center gap-2"><i class="fa-solid fa-eye"></i> Diagrama Interactivo de Pines</h3>
+                <p class="text-xs text-slate-300 mb-4">Pasa el ratón o haz clic sobre los elementos para explorar su uso:</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                  <div class="p-3 bg-slate-800 rounded border border-slate-700 hover:border-emerald-400 transition cursor-pointer">
+                    <strong class="text-emerald-400 block text-sm">Pines Digitales 0 - 13</strong>
+                    <span>Entradas/salidas de 2 estados (0V o 5V). 40mA máx por pin.</span>
+                  </div>
+                  <div class="p-3 bg-slate-800 rounded border border-slate-700 hover:border-amber-400 transition cursor-pointer">
+                    <strong class="text-amber-400 block text-sm">Pines PWM (~3, ~5, ~6, ~9, ~10, ~11)</strong>
+                    <span>Simulan salidas analógicas mediante variación de pulso (0-255).</span>
+                  </div>
+                  <div class="p-3 bg-slate-800 rounded border border-slate-700 hover:border-blue-400 transition cursor-pointer">
+                    <strong class="text-blue-400 block text-sm">Pines Analógicos A0 - A5</strong>
+                    <span>Entradas con conversor ADC de 10 bits (resolución 0 a 1023).</span>
+                  </div>
+                </div>
+              </div>
+            `
+          },
+          {
+            id: "n1_breadboard",
+            title: "La Breadboard y Componentes",
+            type: "Hardware",
+            desc: "Uso de la placa de prototipos (Breadboard), componentes pasivos, resistencias y diodos LED.",
+            content: `
+              <h2 class="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-grip-board text-emerald-600"></i> La Breadboard y Componentes Electrónicos</h2>
+              <p class="mb-4 text-slate-600 leading-relaxed">La <strong>breadboard</strong> o placa de prototipado permite interconectar componentes mediante cables jumper sin necesidad de soldar.</p>
+
+              <div class="grid md:grid-cols-2 gap-6 my-6">
+                <div class="border border-slate-200 p-4 rounded-lg bg-slate-50">
+                  <h3 class="font-bold text-slate-800 mb-2 border-b pb-1">Anatomía Interna de la Breadboard</h3>
+                  <p class="text-sm text-slate-600 mb-2"><strong>Buses laterales (+ y -):</strong> Conectados longitudinalmente en línea continua (utilizados para 5V y GND).</p>
+                  <p class="text-sm text-slate-600"><strong>Pistas centrales (1-30):</strong> Conectadas verticalmente en columnas independientes (a, b, c, d, e y f, g, h, i, j).</p>
+                </div>
+
+                <div class="border border-slate-200 p-4 rounded-lg bg-slate-50">
+                  <h3 class="font-bold text-slate-800 mb-2 border-b pb-1">Diodo LED y Resistencias</h3>
+                  <p class="text-sm text-slate-600 mb-2"><strong>LED:</strong> Componente polarizado. La pata larga (Ánodo) va al polo positivo (+), la pata corta (Cátodo) al negativo (-).</p>
+                  <p class="text-sm text-slate-600"><strong>Resistencia de Protección:</strong> ¡Siempre indispensable! Limita la corriente. Para un LED a 5V se suele usar <strong>220Ω o 330Ω</strong>.</p>
+                </div>
+              </div>
+
+              <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r my-4">
+                <h4 class="font-bold text-amber-900 flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation"></i> ¡Cuidado con los Cortocircuitos!</h4>
+                <p class="text-xs text-amber-800">Si conectas directamente 5V a GND sin resistencia, el puerto USB de tu ordenador se bloqueará automáticamente por seguridad. Tendrás que desconectar la placa y reiniciar el canal.</p>
+              </div>
+            `
+          },
+          {
+            id: "n1_simbologia",
+            title: "Simbología y Magnitudes",
+            type: "Teoría",
+            desc: "Ley de Ohm, magnitudes fundamentales (V, I, R) y circuitos en serie y paralelo.",
+            content: `
+              <h2 class="text-2xl font-bold text-slate-800 mb-4"><i class="fa-solid fa-bolt text-emerald-600"></i> Simbología Eléctrica y Magnitudes</h2>
+              <div class="grid md:grid-cols-3 gap-4 mb-6">
+                <div class="p-4 bg-emerald-50 rounded-lg text-center border border-emerald-100">
+                  <div class="text-2xl font-black text-emerald-700">Voltaje (V)</div>
+                  <div class="text-xs text-emerald-800 mt-1">Diferencia de potencial en Voltios (V)</div>
+                </div>
+                <div class="p-4 bg-emerald-50 rounded-lg text-center border border-emerald-100">
+                  <div class="text-2xl font-black text-emerald-700">Intensidad (I)</div>
+                  <div class="text-xs text-emerald-800 mt-1">Flujo de electrones en Amperios (A / mA)</div>
+                </div>
+                <div class="p-4 bg-emerald-50 rounded-lg text-center border border-emerald-100">
+                  <div class="text-2xl font-black text-emerald-700">Resistencia (R)</div>
+                  <div class="text-xs text-emerald-800 mt-1">Oposición al paso de corriente en Ohmios (Ω)</div>
+                </div>
+              </div>
+
+              <div class="bg-slate-900 text-white p-5 rounded-lg mb-6">
+                <h3 class="text-md font-bold text-emerald-400 mb-2">Fórmula Fundamental: Ley de Ohm</h3>
+                <p class="text-xl font-mono text-center py-2 bg-slate-800 rounded border border-slate-700">V = I · R &nbsp;&nbsp;|&nbsp;&nbsp; I = V / R &nbsp;&nbsp;|&nbsp;&nbsp; R = V / I</p>
+              </div>
+            `
+          },
+          {
+            id: "n1_digital_vs_analog",
+            title: "Digital vs. Analógico",
+            type: "Teoría",
+            desc: "Diferencia crucial entre señales digitales (HIGH/LOW) y analógicas (valores continuos).",
+            content: `
+              <h2 class="text-2xl font-bold text-slate-800 mb-4">Salidas y Entradas: Digital Vs. Analógico</h2>
+              <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white border-2 border-emerald-200 p-5 rounded-xl">
+                  <h3 class="text-lg font-bold text-emerald-700 mb-2 flex items-center gap-2"><i class="fa-solid fa-toggle-on"></i> Mundo Digital</h3>
+                  <p class="text-sm text-slate-600 mb-3">Solo existen dos estados posibles:</p>
+                  <ul class="text-xs space-y-2 text-slate-700 font-mono bg-slate-100 p-3 rounded">
+                    <li><strong>HIGH (1):</strong> 5 Voltios (Encendido)</li>
+                    <li><strong>LOW (0):</strong> 0 Voltios (Apagado)</li>
+                  </ul>
+                  <p class="text-xs text-slate-500 mt-3"><em>Ejemplos:</em> Encender un LED, detectar si un botón está pulsado.</p>
+                </div>
+
+                <div class="bg-white border-2 border-teal-200 p-5 rounded-xl">
+                  <h3 class="text-lg font-bold text-teal-700 mb-2 flex items-center gap-2"><i class="fa-solid fa-wave-square"></i> Mundo Analógico</h3>
+                  <p class="text-sm text-slate-600 mb-3">Rango de valores continuos infinitos:</p>
+                  <ul class="text-xs space-y-2 text-slate-700 font-mono bg-slate-100 p-3 rounded">
+                    <li><strong>Lectura ADC (0 - 1023):</strong> 1024 niveles de resolución de tensión.</li>
+                    <li><strong>Salida PWM (0 - 255):</strong> Modulación por Ancho de Pulso.</li>
+                  </ul>
+                  <p class="text-xs text-slate-500 mt-3"><em>Ejemplos:</em> Variar el brillo de una luz, leer un potenciómetro o sensor de temperatura.</p>
+                </div>
+              </div>
+            `
+          }
+        ]
+      },
+      {
+        id: "nivel2",
+        title: "Nivel 2: Pardillo",
+        icon: "fa-cubes",
+        color: "amber",
+        badge: "IDE & Código",
+        desc: "Estructura del programa, variables, salidas/entradas digitales, PWM, bucles y monitor serie.",
+        topics: [
+          {
+            id: "n2_ide_estructura",
+            title: "IDE Arduino y Estructura Base",
+            type: "Práctica",
+            desc: "Configuración del puerto COM, librerías, setup() y loop(). Práctica 'Hola Mundo' LED parpadeante.",
+            content: `
+              <h2 class="text-2xl font-bold text-slate-800 mb-4"><i class="fa-solid fa-code text-amber-500"></i> Estructura Básica de un Sketch</h2>
+              <p class="mb-4 text-slate-600">Todo programa en Arduino se divide obligatoriamente en tres zonas principales:</p>
+
+              <div class="bg-codebg text-slate-200 p-5 rounded-xl font-mono text-sm overflow-x-auto shadow-lg mb-6">
+<pre><code><span class="text-slate-400">// 1. ZONA GLOBAL: Declaración de variables e inclusión de librerías</span>
+<span class="text-amber-400">int</span> ledPin = <span class="text-emerald-400">13</span>; 
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">setup</span>() {
+  <span class="text-slate-400">// 2. CONFIGURACIÓN: Se ejecuta UNA SOLA VEZ al arrancar</span>
+  <span class="text-yellow-300">pinMode</span>(ledPin, <span class="text-teal-300">OUTPUT</span>); <span class="text-slate-400">// Configura el pin 13 como Salida</span>
+}
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">loop</span>() {
+  <span class="text-slate-400">// 3. BUCLE PRINCIPAL: Se ejecuta continuamente en bucle infinito</span>
+  <span class="text-yellow-300">digitalWrite</span>(ledPin, <span class="text-teal-300">HIGH</span>); <span class="text-slate-400">// Enciende el LED (5V)</span>
+  <span class="text-yellow-300">delay</span>(<span class="text-emerald-400">1000</span>);                 <span class="text-slate-400">// Espera 1000 ms (1 segundo)</span>
+  <span class="text-yellow-300">digitalWrite</span>(ledPin, <span class="text-teal-300">LOW</span>);  <span class="text-slate-400">// Apaga el LED (0V)</span>
+  <span class="text-yellow-300">delay</span>(<span class="text-emerald-400">1000</span>);                 <span class="text-slate-400">// Espera 1 segundo</span>
+}</code></pre>
+              </div>
+
+              <div class="p-4 bg-amber-50 border-l-4 border-amber-500 rounded text-xs text-amber-900">
+                <strong>Consejo del Profesor:</strong> No olvides finalizar cada instrucción con punto y coma (<code>;</code>). C/C++ distingue entre mayúsculas y minúsculas (es Case Sensitive).
+              </div>
+            `
+          },
+          {
+            id: "n2_digital_io",
+            title: "Entradas Digitales y Pulsador",
+            type: "Práctica",
+            desc: "Lectura de pulsadores usando digitalRead(), resistencia Pull-Down vs Pull-Up e INPUT_PULLUP.",
+            content: `
+              <h2 class="text-2xl font-bold text-slate-800 mb-4">Entradas Digitales y Pulsadores</h2>
+              <p class="mb-4 text-slate-600">Para leer un botón evitamos lecturas indeterminadas utilizando resistencias <strong>Pull-Up</strong> o la resistencia interna de la placa mediante <code>INPUT_PULLUP</code>.</p>
+
+              <div class="bg-codebg text-slate-200 p-5 rounded-xl font-mono text-sm overflow-x-auto shadow-lg mb-6">
+<pre><code><span class="text-amber-400">int</span> botonPin = <span class="text-emerald-400">8</span>;
+<span class="text-amber-400">int</span> ledPin = <span class="text-emerald-400">13</span>;
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">setup</span>() {
+  <span class="text-yellow-300">pinMode</span>(botonPin, <span class="text-teal-300">INPUT_PULLUP</span>); <span class="text-slate-400">// Habilita Pull-Up interna (Sin botón = HIGH, Pulsado = LOW)</span>
+  <span class="text-yellow-300">pinMode</span>(ledPin, <span class="text-teal-300">OUTPUT</span>);
+}
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">loop</span>() {
+  <span class="text-amber-400">int</span> estadoBoton = <span class="text-yellow-300">digitalRead</span>(botonPin);
+  
+  <span class="text-purple-400">if</span> (estadoBoton == <span class="text-teal-300">LOW</span>) { <span class="text-slate-400">// Si pulsamos el botón</span>
+    <span class="text-yellow-300">digitalWrite</span>(ledPin, <span class="text-teal-300">HIGH</span>);
+  } <span class="text-purple-400">else</span> {
+    <span class="text-yellow-300">digitalWrite</span>(ledPin, <span class="text-teal-300">LOW</span>);
+  }
+}</code></pre>
+              </div>
+            `
+          },
+          {
+            id: "n2_serial_mon",
+            title: "Comunicación Serie e IDE Monitor",
+            type: "Práctica",
+            desc: "Uso de Serial.begin(9600), Serial.print() y Serial.println() para depurar datos en el PC.",
+            content: `
+              <h2 class="text-2xl font-bold text-slate-800 mb-4">Comunicación Serie con el Ordenador</h2>
+              <p class="mb-4 text-slate-600">El puerto serie permite a la placa Arduino enviar mensajes de diagnóstico al ordenador en tiempo real.</p>
+
+              <div class="bg-codebg text-slate-200 p-5 rounded-xl font-mono text-sm overflow-x-auto shadow-lg mb-6">
+<pre><code><span class="text-purple-400">void</span> <span class="text-blue-400">setup</span>() {
+  <span class="text-teal-300">Serial</span>.<span class="text-yellow-300">begin</span>(<span class="text-emerald-400">9600</span>); <span class="text-slate-400">// Inicia comunicación a 9600 baudios</span>
+}
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">loop</span>() {
+  <span class="text-amber-400">int</span> valorValorLDR = <span class="text-yellow-300">analogRead</span>(A0);
+  <span class="text-teal-300">Serial</span>.<span class="text-yellow-300">print</span>(<span class="text-teal-400">"Lectura de luz: "</span>);
+  <span class="text-teal-300">Serial</span>.<span class="text-yellow-300">println</span>(valorValorLDR); <span class="text-slate-400">// Imprime con salto de línea</span>
+  <span class="text-yellow-300">delay</span>(<span class="text-emerald-400">500</span>);
+}</code></pre>
+              </div>
+            `
+          },
+          {
+            id: "n2_analog_map",
+            title: "Entradas Analógicas y map()",
+            type: "Práctica",
+            desc: "Lectura de potenciómetros y LDR con analogRead() y mapeo a rangos con map() y constrain().",
+            content: `
+              <h2 class="text-2xl font-bold text-slate-800 mb-4">Sensores Analógicos y Mapeo</h2>
+              <p class="mb-4 text-slate-600">Al leer un sensor analógico obtenemos un entero entre <code>0 y 1023</code>. Para mandarlo a una salida PWM de <code>0 a 255</code> usamos la función <code>map()</code>.</p>
+
+              <!-- Interactive Simulator Component -->
+              <div class="bg-slate-100 p-6 rounded-xl border border-slate-300 mb-6">
+                <h3 class="font-bold text-slate-800 mb-3 flex items-center gap-2"><i class="fa-solid fa-sliders text-amber-500"></i> Simulador Interactivo: Potenciómetro -> LED PWM</h3>
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Potenciómetro (0 - 1023): <span id="potVal" class="text-amber-600 font-bold">512</span></label>
+                    <input type="range" min="0" max="1023" value="512" id="potSlider" oninput="simularPWM()" class="w-full accent-amber-500">
+                  </div>
+
+                  <div class="flex items-center justify-between p-4 bg-white rounded border">
+                    <div>
+                      <span class="text-xs text-slate-500 block">Salida Mapeada con map():</span>
+                      <span id="pwmVal" class="text-lg font-mono font-bold text-teal-600">128 (PWM)</span>
+                    </div>
+                    <div id="simLed" class="w-12 h-12 rounded-full border-2 border-slate-400 bg-amber-400 shadow-md transition-all duration-150 flex items-center justify-center text-xs font-bold text-slate-800">
+                      LED
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-codebg text-slate-200 p-5 rounded-xl font-mono text-sm overflow-x-auto shadow-lg">
+<pre><code><span class="text-purple-400">void</span> <span class="text-blue-400">loop</span>() {
+  <span class="text-amber-400">int</span> lectura = <span class="text-yellow-300">analogRead</span>(A0); <span class="text-slate-400">// Lectura 0 a 1023</span>
+  <span class="text-amber-400">int</span> pwm = <span class="text-yellow-300">map</span>(lectura, <span class="text-emerald-400">0</span>, <span class="text-emerald-400">1023</span>, <span class="text-emerald-400">0</span>, <span class="text-emerald-400">255</span>); <span class="text-slate-400">// Conversión proporcional</span>
+  pwm = <span class="text-yellow-300">constrain</span>(pwm, <span class="text-emerald-400">0</span>, <span class="text-emerald-400">255</span>); <span class="text-slate-400">// Asegura límites de seguridad</span>
+  <span class="text-yellow-300">analogWrite</span>(<span class="text-emerald-400">9</span>, pwm); <span class="text-slate-400">// Salida PWM al LED</span>
+}</code></pre>
+              </div>
+            `
+          }
+        ]
+      },
+      {
+        id: "nivel3",
+        title: "Nivel 3: Aficionao",
+        icon: "fa-volume-high",
+        color: "orange",
+        badge: "Sonido & Motores",
+        desc: "Generación de sonidos, zumbador piezoeléctrico, sensores NTC y control de servomotores.",
+        topics: [
+          {
+            id: "n3_sonido_tone",
+            title: "Generar Sonidos con tone()",
+            type: "Práctica",
+            desc: "Uso de las funciones tone(), noTone() y cálculo de frecuencias musicales en altavoces/piezos.",
+            content: `
+              <h2 class="text-2xl font-bold text-slate-800 mb-4"><i class="fa-solid fa-music text-orange-500"></i> Emisión de Tonos y Música</h2>
+              <p class="mb-4 text-slate-600">Arduino puede generar frecuencias audibles en un altavoz o zumbador piezoeléctrico mediante impulsos de onda cuadrada.</p>
+
+              <div class="bg-codebg text-slate-200 p-5 rounded-xl font-mono text-sm overflow-x-auto shadow-lg mb-6">
+<pre><code><span class="text-amber-400">int</span> pinZumbador = <span class="text-emerald-400">8</span>;
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">setup</span>() {
+  <span class="text-slate-400">// tone(pin, frecuencia_Hz, duracion_ms)</span>
+  <span class="text-yellow-300">tone</span>(pinZumbador, <span class="text-emerald-400">440</span>, <span class="text-emerald-400">1000</span>); <span class="text-slate-400">// Nota LA (440Hz) por 1 segundo</span>
+}
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">loop</span>() {
+  <span class="text-slate-400">// Efecto Sirena</span>
+  <span class="text-purple-400">for</span> (<span class="text-amber-400">int</span> f = <span class="text-emerald-400">200</span>; f < <span class="text-emerald-400">1000</span>; f += <span class="text-emerald-400">10</span>) {
+    <span class="text-yellow-300">tone</span>(pinZumbador, f);
+    <span class="text-yellow-300">delay</span>(<span class="text-emerald-400">10</span>);
+  }
+  <span class="text-yellow-300">noTone</span>(pinZumbador); <span class="text-slate-400">// Silencia el zumbador</span>
+  <span class="text-yellow-300">delay</span>(<span class="text-emerald-400">1000</span>);
+}</code></pre>
+              </div>
+            `
+          },
+          {
+            id: "n3_servomotores",
+            title: "Control de Servomotores",
+            type: "Práctica",
+            desc: "Uso de la librería <Servo.h>, posicionamiento de 0º a 180º y servos de rotación continua.",
+            content: `
+              <h2 class="text-2xl font-bold text-slate-800 mb-4">Servomotores (0º - 180º)</h2>
+              <p class="mb-4 text-slate-600">Un servo estándar incorpora engranajes y potenciómetro interno para posicionarse exactamente en el ángulo deseado.</p>
+
+              <div class="bg-codebg text-slate-200 p-5 rounded-xl font-mono text-sm overflow-x-auto shadow-lg mb-6">
+<pre><code><span class="text-purple-400">#include</span> <span class="text-teal-300">&lt;Servo.h&gt;</span>
+
+<span class="text-teal-300">Servo</span> miServo; <span class="text-slate-400">// Crea el objeto servo</span>
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">setup</span>() {
+  miServo.<span class="text-yellow-300">attach</span>(<span class="text-emerald-400">9</span>); <span class="text-slate-400">// Vincula el servo al pin digital 9</span>
+}
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">loop</span>() {
+  miServo.<span class="text-yellow-300">write</span>(<span class="text-emerald-400">0</span>);   <span class="text-slate-400">// Mueve a 0 grados</span>
+  <span class="text-yellow-300">delay</span>(<span class="text-emerald-400">1000</span>);
+  miServo.<span class="text-yellow-300">write</span>(<span class="text-emerald-400">90</span>);  <span class="text-slate-400">// Mueve a 90 grados (posición central)</span>
+  <span class="text-yellow-300">delay</span>(<span class="text-emerald-400">1000</span>);
+  miServo.<span class="text-yellow-300">write</span>(<span class="text-emerald-400">180</span>); <span class="text-slate-400">// Mueve a 180 grados</span>
+  <span class="text-yellow-300">delay</span>(<span class="text-emerald-400">1000</span>);
+}</code></pre>
+              </div>
+
+              <div class="bg-amber-50 p-4 border-l-4 border-amber-500 text-xs text-amber-900 rounded">
+                <strong>Advertencia de Corriente:</strong> Un servo bajo carga puede consumir más de 500mA. Para no dañar Arduino, alimenta los servos desde una fuente externa compartiendo la masa (GND).
+              </div>
+            `
+          },
+          {
+            id: "n3_ntc_temperatura",
+            title: "Sensor de Temperatura NTC",
+            type: "Práctica",
+            desc: "Medición de temperatura mediante divisor de tensión con resistencia NTC (Negative Temperature Coefficient).",
+            content: `
+              <h2 class="text-2xl font-bold text-slate-800 mb-4">Medición de Temperatura con NTC</h2>
+              <p class="mb-4 text-slate-600">Una <strong>NTC</strong> disminuye su resistencia óhmica conforme aumenta la temperatura. Montada en un divisor de voltaje, se lee por un pin analógico.</p>
+
+              <div class="bg-codebg text-slate-200 p-5 rounded-xl font-mono text-sm overflow-x-auto shadow-lg">
+<pre><code><span class="text-purple-400">void</span> <span class="text-blue-400">loop</span>() {
+  <span class="text-amber-400">int</span> lectura = <span class="text-yellow-300">analogRead</span>(A4);
+  <span class="text-slate-400">// Mapea el rango de valores devuelto por la NTC</span>
+  <span class="text-amber-400">int</span> tempGrad = <span class="text-yellow-300">map</span>(lectura, <span class="text-emerald-400">280</span>, <span class="text-emerald-400">400</span>, <span class="text-emerald-400">0</span>, <span class="text-emerald-400">30</span>);
+  <span class="text-teal-300">Serial</span>.<span class="text-yellow-300">print</span>(<span class="text-teal-400">"Temperatura aproximada: "</span>);
+  <span class="text-teal-300">Serial</span>.<span class="text-yellow-300">print</span>(tempGrad);
+  <span class="text-teal-300">Serial</span>.<span class="text-yellow-300">println</span>(<span class="text-teal-400">" ºC"</span>);
+  <span class="text-yellow-300">delay</span>(<span class="text-emerald-400">1000</span>);
+}</code></pre>
+              </div>
+            `
+          }
+        ]
+      },
+      {
+        id: "nivel4",
+        title: "Nivel 4: Enteraillo",
+        icon: "fa-code-branch",
+        color: "rose",
+        badge: "Programación Avanzada",
+        desc: "Variables avanzadas, bucles While/Do-While, Arrays, creación de funciones, tiempo millis() y reset por software.",
+        topics: [
+          {
+            id: "n4_estructuras_avanzadas",
+            title: "Switch, While y Break",
+            type: "Teoría & Práctica",
+            desc: "Optimización de flujo con switch-case, estructuras de repetición while y do-while, saltos con break y continue.",
+            content: `
+              <h2 class="text-2xl font-bold text-slate-800 mb-4"><i class="fa-solid fa-code-merge text-rose-500"></i> Estructura Switch-Case</h2>
+              <p class="mb-4 text-slate-600">Sustituye múltiples bloques de <code>if-else</code> anidados cuando evaluamos el valor de una única variable.</p>
+
+              <div class="bg-codebg text-slate-200 p-5 rounded-xl font-mono text-sm overflow-x-auto shadow-lg mb-6">
+<pre><code><span class="text-purple-400">char</span> comando = <span class="text-teal-300">Serial</span>.<span class="text-yellow-300">read</span>();
+
+<span class="text-purple-400">switch</span> (comando) {
+  <span class="text-purple-400">case</span> <span class="text-teal-400">'A'</span>:
+    <span class="text-yellow-300">digitalWrite</span>(<span class="text-emerald-400">13</span>, <span class="text-teal-300">HIGH</span>);
+    <span class="text-purple-400">break</span>; <span class="text-slate-400">// Sale del switch</span>
+  <span class="text-purple-400">case</span> <span class="text-teal-400">'B'</span>:
+    <span class="text-yellow-300">digitalWrite</span>(<span class="text-emerald-400">13</span>, <span class="text-teal-300">LOW</span>);
+    <span class="text-purple-400">break</span>;
+  <span class="text-purple-400">default</span>:
+    <span class="text-teal-300">Serial</span>.<span class="text-yellow-300">println</span>(<span class="text-teal-400">"Comando no reconocido"</span>);
+}</code></pre>
+              </div>
+            `
+          },
+          {
+            id: "n4_arrays_funciones",
+            title: "Arrays y Funciones Propias",
+            type: "Práctica",
+            desc: "Almacenar colecciones de pines o datos en listas (Arrays) y modularizar código creando funciones propias.",
+            content: `
+              <h2 class="text-2xl font-bold text-slate-800 mb-4">Arrays y Funciones Personalizadas</h2>
+              <p class="mb-4 text-slate-600">Un <strong>Array</strong> almacena múltiples variables bajo un mismo nombre accesibles mediante su índice (empezando por el 0).</p>
+
+              <div class="bg-codebg text-slate-200 p-5 rounded-xl font-mono text-sm overflow-x-auto shadow-lg mb-6">
+<pre><code><span class="text-slate-400">// Array de pines conectados a varios LEDs</span>
+<span class="text-amber-400">int</span> leds[] = {<span class="text-emerald-400">2</span>, <span class="text-emerald-400">3</span>, <span class="text-emerald-400">4</span>, <span class="text-emerald-400">5</span>, <span class="text-emerald-400">6</span>}; 
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">setup</span>() {
+  <span class="text-purple-400">for</span> (<span class="text-amber-400">int</span> i = <span class="text-emerald-400">0</span>; i < <span class="text-emerald-400">5</span>; i++) {
+    <span class="text-yellow-300">pinMode</span>(leds[i], <span class="text-teal-300">OUTPUT</span>);
+  }
+}
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">loop</span>() {
+  secuenciaLuces(); <span class="text-slate-400">// Llamada a nuestra función propia</span>
+}
+
+<span class="text-slate-400">// Definición de la función propia</span>
+<span class="text-purple-400">void</span> secuenciaLuces() {
+  <span class="text-purple-400">for</span> (<span class="text-amber-400">int</span> i = <span class="text-emerald-400">0</span>; i < <span class="text-emerald-400">5</span>; i++) {
+    <span class="text-yellow-300">digitalWrite</span>(leds[i], <span class="text-teal-300">HIGH</span>);
+    <span class="text-yellow-300">delay</span>(<span class="text-emerald-400">100</span>);
+    <span class="text-yellow-300">digitalWrite</span>(leds[i], <span class="text-teal-300">LOW</span>);
+  }
+}</code></pre>
+              </div>
+            `
+          },
+          {
+            id: "n4_millis_reset",
+            title: "Gestión del Tiempo y Reset",
+            type: "Avanzado",
+            desc: "Uso de millis() para multitarea sin bloquear el programa con delay(). Reset por código con ensamblador.",
+            content: `
+              <h2 class="text-2xl font-bold text-slate-800 mb-4">Temporización con millis() y Reset por software</h2>
+              <p class="mb-4 text-slate-600">A diferencia de <code>delay()</code> (que paraliza el procesador), <code>millis()</code> devuelve los milisegundos transcurridos desde que arrancó la placa, permitiendo ejecutar multitarea.</p>
+
+              <div class="bg-codebg text-slate-200 p-5 rounded-xl font-mono text-sm overflow-x-auto shadow-lg mb-6">
+<pre><code><span class="text-amber-400">unsigned long</span> tiempoAnterior = <span class="text-emerald-400">0</span>;
+<span class="text-amber-400">const long</span> intervalo = <span class="text-emerald-400">1000</span>;
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">loop</span>() {
+  <span class="text-amber-400">unsigned long</span> tiempoActual = <span class="text-yellow-300">millis</span>();
+
+  <span class="text-purple-400">if</span> (tiempoActual - tiempoAnterior >= intervalo) {
+    tiempoAnterior = tiempoActual;
+    <span class="text-slate-400">// Ejecuta la tarea periódica aquí</span>
+  }
+}
+
+<span class="text-slate-400">// Función para reiniciar Arduino por código:</span>
+<span class="text-purple-400">void</span> reiniciarArduino() {
+  <span class="text-yellow-300">asm volatile</span>(<span class="text-teal-400">"jmp 0"</span>); <span class="text-slate-400">// Salto a la dirección 0 de memoria Flash</span>
+}</code></pre>
+              </div>
+            `
+          }
+        ]
+      },
+      {
+        id: "nivel5",
+        title: "Nivel 5: Arduineitor",
+        icon: "fa-robot",
+        color: "purple",
+        badge: "Proyectos Máster",
+        desc: "PANTALLAS, Displays de 7 segmentos, Matriz LED 8x8, Ultrasonidos HC-SR04, Bluetooth y expansor 74HC595.",
+        topics: [
+          {
+            id: "n5_ultrasonidos",
+            title: "Sensor Ultrasonidos HC-SR04",
+            type: "Práctica Proyecto",
+            desc: "Medición de distancias mediante ondas de ultrasonido con Trigger y Echo.",
+            content: `
+              <h2 class="text-2xl font-bold text-slate-800 mb-4"><i class="fa-solid fa-radar text-purple-600"></i> Sensor Ultrasónico de Distancia HC-SR04</h2>
+              <p class="mb-4 text-slate-600">Calcula la distancia a un objeto emitiendo un ráfaga de ultrasonidos y midiendo el tiempo que tarda el eco en regresar.</p>
+
+              <!-- Interactive Ultrasonics Visualizer -->
+              <div class="bg-slate-100 p-5 rounded-xl border border-slate-300 mb-6">
+                <h3 class="font-bold text-slate-800 mb-2">Simulador de Distancia de Eco:</h3>
+                <input type="range" min="2" max="200" value="45" id="ultraSlider" oninput="simularUltrasonido()" class="w-full accent-purple-600">
+                <div class="mt-3 flex justify-between items-center bg-white p-3 rounded shadow-sm">
+                  <span class="text-sm">Distancia del obstáculo: <strong id="distText" class="text-purple-700 font-mono text-lg">45 cm</strong></span>
+                  <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Tiempo Eco: <span id="echoTime">2610</span> µs</span>
+                </div>
+              </div>
+
+              <div class="bg-codebg text-slate-200 p-5 rounded-xl font-mono text-sm overflow-x-auto shadow-lg">
+<pre><code><span class="text-amber-400">const int</span> trigPin = <span class="text-emerald-400">9</span>;
+<span class="text-amber-400">const int</span> echoPin = <span class="text-emerald-400">10</span>;
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">setup</span>() {
+  <span class="text-yellow-300">pinMode</span>(trigPin, <span class="text-teal-300">OUTPUT</span>);
+  <span class="text-yellow-300">pinMode</span>(echoPin, <span class="text-teal-300">INPUT</span>);
+  <span class="text-teal-300">Serial</span>.<span class="text-yellow-300">begin</span>(<span class="text-emerald-400">9600</span>);
+}
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">loop</span>() {
+  <span class="text-yellow-300">digitalWrite</span>(trigPin, <span class="text-teal-300">LOW</span>);
+  <span class="text-yellow-300">delayMicroseconds</span>(<span class="text-emerald-400">2</span>);
+  <span class="text-yellow-300">digitalWrite</span>(trigPin, <span class="text-teal-300">HIGH</span>);
+  <span class="text-yellow-300">delayMicroseconds</span>(<span class="text-emerald-400">10</span>);
+  <span class="text-yellow-300">digitalWrite</span>(trigPin, <span class="text-teal-300">LOW</span>);
+
+  <span class="text-amber-400">long</span> duracion = <span class="text-yellow-300">pulseIn</span>(echoPin, <span class="text-teal-300">HIGH</span>);
+  <span class="text-amber-400">int</span> distancia = duracion * <span class="text-emerald-400">0.034</span> / <span class="text-emerald-400">2</span>; <span class="text-slate-400">// Distancia en cm</span>
+
+  <span class="text-teal-300">Serial</span>.<span class="text-yellow-300">print</span>(<span class="text-teal-400">"Distancia: "</span>);
+  <span class="text-teal-300">Serial</span>.<span class="text-yellow-300">print</span>(distancia);
+  <span class="text-teal-300">Serial</span>.<span class="text-yellow-300">println</span>(<span class="text-teal-400">" cm"</span>);
+  <span class="text-yellow-300">delay</span>(<span class="text-emerald-400">500</span>);
+}</code></pre>
+              </div>
+            `
+          },
+          {
+            id: "n5_lcd_16x2",
+            title: "Pantalla LCD 16x2",
+            type: "Práctica Proyecto",
+            desc: "Uso de la librería <LiquidCrystal.h> para mostrar texto, contadores y mensajes deslizantes.",
+            content: `
+              <h2 class="text-2xl font-bold text-slate-800 mb-4">Pantalla LCD 16x2</h2>
+              <p class="mb-4 text-slate-600">Dispositivo de salida alfanumérico compuesto por 2 filas de 16 caracteres.</p>
+
+              <!-- Interactive LCD Mockup -->
+              <div class="bg-blue-900 p-4 rounded-xl border-4 border-blue-950 shadow-inner mb-6">
+                <div class="bg-lime-400 text-slate-900 font-mono p-4 rounded border-2 border-lime-600 shadow-inner tracking-widest text-lg font-bold">
+                  <div id="lcdRow1">Hola Mundo!     </div>
+                  <div id="lcdRow2">Arduino Academy </div>
+                </div>
+              </div>
+
+              <div class="bg-codebg text-slate-200 p-5 rounded-xl font-mono text-sm overflow-x-auto shadow-lg">
+<pre><code><span class="text-purple-400">#include</span> <span class="text-teal-300">&lt;LiquidCrystal.h&gt;</span>
+
+<span class="text-slate-400">// Inicializa la librería con los números de los pines de interfaz</span>
+<span class="text-teal-300">LiquidCrystal</span> lcd(<span class="text-emerald-400">12</span>, <span class="text-emerald-400">11</span>, <span class="text-emerald-400">5</span>, <span class="text-emerald-400">4</span>, <span class="text-emerald-400">3</span>, <span class="text-emerald-400">2</span>);
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">setup</span>() {
+  lcd.<span class="text-yellow-300">begin</span>(<span class="text-emerald-400">16</span>, <span class="text-emerald-400">2</span>); <span class="text-slate-400">// Configura 16 columnas y 2 filas</span>
+  lcd.<span class="text-yellow-300">setCursor</span>(<span class="text-emerald-400">0</span>, <span class="text-emerald-400">0</span>);
+  lcd.<span class="text-yellow-300">print</span>(<span class="text-teal-400">"Hola Mundo!"</span>);
+  lcd.<span class="text-yellow-300">setCursor</span>(<span class="text-emerald-400">0</span>, <span class="text-emerald-400">1</span>);
+  lcd.<span class="text-yellow-300">print</span>(<span class="text-teal-400">"Arduino Academy"</span>);
+}
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">loop</span>() {
+  <span class="text-slate-400">// Código en ejecución...</span>
+}</code></pre>
+              </div>
+            `
+          },
+          {
+            id: "n5_bluetooth_hc05",
+            title: "Módulo Bluetooth HC-05/HC-06",
+            type: "Práctica Proyecto",
+            desc: "Control domótico inalámbrico desde una App móvil (Android / AppInventor) enviando caracteres.",
+            content: `
+              <h2 class="text-2xl font-bold text-slate-800 mb-4"><i class="fa-brands fa-bluetooth-b text-blue-600"></i> Control Remoto por Bluetooth</h2>
+              <p class="mb-4 text-slate-600">Uso de la librería <code>SoftwareSerial.h</code> para comunicarse de forma inalámbrica con un smartphone sin ocupar los pines de la consola principal (0 y 1).</p>
+
+              <div class="bg-codebg text-slate-200 p-5 rounded-xl font-mono text-sm overflow-x-auto shadow-lg mb-6">
+<pre><code><span class="text-purple-400">#include</span> <span class="text-teal-300">&lt;SoftwareSerial.h&gt;</span>
+
+<span class="text-teal-300">SoftwareSerial</span> BT(<span class="text-emerald-400">10</span>, <span class="text-emerald-400">11</span>); <span class="text-slate-400">// RX = Pin 10, TX = Pin 11</span>
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">setup</span>() {
+  BT.<span class="text-yellow-300">begin</span>(<span class="text-emerald-400">9600</span>);
+  <span class="text-yellow-300">pinMode</span>(<span class="text-emerald-400">13</span>, <span class="text-teal-300">OUTPUT</span>);
+}
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">loop</span>() {
+  <span class="text-purple-400">if</span> (BT.<span class="text-yellow-300">available</span>()) {
+    <span class="text-purple-400">char</span> dato = BT.<span class="text-yellow-300">read</span>();
+    <span class="text-purple-400">if</span> (dato == <span class="text-teal-400">'1'</span>) <span class="text-yellow-300">digitalWrite</span>(<span class="text-emerald-400">13</span>, <span class="text-teal-300">HIGH</span>); <span class="text-slate-400">// Enciende luz</span>
+    <span class="text-purple-400">if</span> (dato == <span class="text-teal-400">'0'</span>) <span class="text-yellow-300">digitalWrite</span>(<span class="text-emerald-400">13</span>, <span class="text-teal-300">LOW</span>);  <span class="text-slate-400">// Apaga luz</span>
+  }
+}</code></pre>
+              </div>
+            `
+          },
+          {
+            id: "n5_shift_register",
+            title: "Registro de Desplazamiento 74HC595",
+            type: "Avanzado",
+            desc: "Aumentar pines de salida utilizando solo 3 pines de Arduino con el circuito integrado 74HC595 y shiftOut().",
+            content: `
+              <h2 class="text-2xl font-bold text-slate-800 mb-4">Expansión de Salidas con C.I. 74HC595</h2>
+              <p class="mb-4 text-slate-600">Permite controlar 8 salidas individuales empleando únicamente 3 pines de la placa de Arduino mediante envío serie de datos.</p>
+
+              <div class="bg-codebg text-slate-200 p-5 rounded-xl font-mono text-sm overflow-x-auto shadow-lg">
+<pre><code><span class="text-amber-400">int</span> latchPin = <span class="text-emerald-400">8</span>;
+<span class="text-amber-400">int</span> clockPin = <span class="text-emerald-400">12</span>;
+<span class="text-amber-400">int</span> dataPin = <span class="text-emerald-400">11</span>;
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">setup</span>() {
+  <span class="text-yellow-300">pinMode</span>(latchPin, <span class="text-teal-300">OUTPUT</span>);
+  <span class="text-yellow-300">pinMode</span>(clockPin, <span class="text-teal-300">OUTPUT</span>);
+  <span class="text-yellow-300">pinMode</span>(dataPin, <span class="text-teal-300">OUTPUT</span>);
+}
+
+<span class="text-purple-400">void</span> <span class="text-blue-400">loop</span>() {
+  <span class="text-purple-400">for</span> (<span class="text-amber-400">int</span> i = <span class="text-emerald-400">0</span>; i < <span class="text-emerald-400">256</span>; i++) {
+    <span class="text-yellow-300">digitalWrite</span>(latchPin, <span class="text-teal-300">LOW</span>);
+    <span class="text-yellow-300">shiftOut</span>(dataPin, clockPin, <span class="text-teal-300">MSBFIRST</span>, i); <span class="text-slate-400">// Envía el byte en binario</span>
+    <span class="text-yellow-300">digitalWrite</span>(latchPin, <span class="text-teal-300">HIGH</span>);
+    <span class="text-yellow-300">delay</span>(<span class="text-emerald-400">100</span>);
+  }
+}</code></pre>
+              </div>
+            `
+          }
+        ]
+      }
+    ];
+
+    // APPLICATION STATE
+    let currentLevelIndex = 0;
+    let currentTopicIndex = 0;
+    let completedTopics = JSON.parse(localStorage.getItem('arduino_completed') || '{}');
+
+    // INITIALIZATION
+    window.onload = function() {
+      buildNavigation();
+      renderHome();
+      updateProgressUI();
+    };
+
+    // RENDER NAVIGATION MENU
+    function buildNavigation() {
+      const navContainer = document.getElementById('navigationMenu');
+      navContainer.innerHTML = '';
+
+      courseData.forEach((level, lIdx) => {
+        const levelBox = document.createElement('div');
+        levelBox.className = 'space-y-1';
+
+        // Header for Category / Level
+        const header = document.createElement('button');
+        header.className = `w-full flex items-center justify-between p-2.5 rounded-lg text-left font-bold text-sm text-slate-800 hover:bg-slate-100 transition`;
+        header.onclick = () => toggleLevelExpand(lIdx);
+        header.innerHTML = `
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid ${level.icon} text-${level.color}-600 text-base"></i>
+            <span>${level.title}</span>
+          </div>
+          <i id="chevron-${lIdx}" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-200"></i>
+        `;
+
+        // Subpages list (Prácticas)
+        const subList = document.createElement('div');
+        subList.id = `sublist-${lIdx}`;
+        subList.className = `pl-4 space-y-1 mt-1 ${lIdx === 0 ? '' : 'hidden'}`;
+
+        level.topics.forEach((topic, tIdx) => {
+          const itemKey = `${lIdx}_${tIdx}`;
+          const isDone = completedTopics[itemKey] || false;
+
+          const btn = document.createElement('div');
+          btn.id = `nav-item-${lIdx}-${tIdx}`;
+          btn.className = `group flex items-center justify-between p-2 rounded-md text-xs cursor-pointer hover:bg-slate-100 text-slate-600 transition`;
+          btn.onclick = (e) => {
+            if (e.target.tagName !== 'INPUT') {
+              selectTopic(lIdx, tIdx);
+            }
+          };
+
+          btn.innerHTML = `
+            <span class="truncate pr-2 font-medium group-hover:text-slate-900">${topic.title}</span>
+            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleComplete('${itemKey}', this.checked)" class="rounded text-arduinoteal focus:ring-0 cursor-pointer">
+          `;
+
+          subList.appendChild(btn);
+        });
+
+        levelBox.appendChild(header);
+        levelBox.appendChild(subList);
+        navContainer.appendChild(levelBox);
+      });
+    }
+
+    // TOGGLE ACCORDION
+    function toggleLevelExpand(lIdx) {
+      const sublist = document.getElementById(`sublist-${lIdx}`);
+      const chevron = document.getElementById(`chevron-${lIdx}`);
+      if (sublist.classList.contains('hidden')) {
+        sublist.classList.remove('hidden');
+        chevron.classList.add('rotate-180');
+      } else {
+        sublist.classList.add('hidden');
+        chevron.classList.remove('rotate-180');
+      }
+    }
+
+    // HOME PAGE DASHBOARD
+    function renderHome() {
+      const main = document.getElementById('contentArea');
+      
+      let categoriesCardsHtml = courseData.map((level, lIdx) => `
+        <div class="border border-slate-200 rounded-xl p-5 bg-white hover:shadow-md transition cursor-pointer flex flex-col justify-between" onclick="selectTopic(${lIdx}, 0)">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="p-2 rounded-lg bg-${level.color}-100 text-${level.color}-700 text-lg">
+                <i class="fa-solid ${level.icon}"></i>
+              </span>
+              <span class="text-xs font-semibold px-2 py-1 bg-slate-100 text-slate-600 rounded-full">${level.topics.length} Subpáginas</span>
+            </div>
+            <h3 class="font-bold text-slate-800 text-base mb-1">${level.title}</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">${level.desc}</p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-arduinoteal">
+            <span>Explorar contenido</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </div>
+        </div>
+      `).join('');
+
+      main.innerHTML = `
+        <div class="text-center py-6 border-b border-slate-100 mb-8">
+          <span class="px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-bold uppercase tracking-wider mb-3 inline-block">Plataforma Interactiva de Aprendizaje</span>
+          <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">Curso Completo de Arduino UNO</h1>
+          <p class="text-slate-600 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+            Estructurado en 5 grandes categorías desde los conceptos más básicos de electricidad hasta proyectos avanzados con pantallas, matriz LED y sensores de sonido y distancia.
+          </p>
+        </div>
+
+        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-layer-group text-arduinoteal"></i> Categorías del Curso (Niveles)</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+          ${categoriesCardsHtml}
+        </div>
+
+        <!-- Callout Banner -->
+        <div class="bg-gradient-to-r from-slate-900 to-teal-950 text-white p-6 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <h3 class="font-bold text-lg mb-1 text-teal-300">¿Eres totalmente nuevo en la plataforma?</h3>
+            <p class="text-xs text-slate-300">Comienza con el Nivel 1 "Perdío" para aprender el funcionamiento de la breadboard, resistencias y el microcontrolador.</p>
+          </div>
+          <button onclick="selectTopic(0,0)" class="px-5 py-2.5 bg-arduinoteal hover:bg-arduinodark text-white rounded-lg text-xs font-bold whitespace-nowrap transition shadow">
+            Iniciar Nivel 1
+          </button>
+        </div>
+      `;
+    }
+
+    // SELECT AND DISPLAY A SPECIFIC TOPIC SUBPAGE
+    function selectTopic(lIdx, tIdx) {
+      currentLevelIndex = lIdx;
+      currentTopicIndex = tIdx;
+
+      // Ensure accordion open
+      const sublist = document.getElementById(`sublist-${lIdx}`);
+      if (sublist) sublist.classList.remove('hidden');
+
+      // Highlight in Nav
+      document.querySelectorAll('#navigationMenu div').forEach(el => el.classList.remove('active-nav'));
+      const activeEl = document.getElementById(`nav-item-${lIdx}-${tIdx}`);
+      if (activeEl) activeEl.classList.add('active-nav');
+
+      const level = courseData[lIdx];
+      const topic = level.topics[tIdx];
+      const itemKey = `${lIdx}_${tIdx}`;
+      const isDone = completedTopics[itemKey] || false;
+
+      const main = document.getElementById('contentArea');
+      main.innerHTML = `
+        <div class="flex items-center justify-between border-b pb-4 mb-6">
+          <div>
+            <div class="flex items-center gap-2 text-xs font-semibold text-${level.color}-600 mb-1">
+              <span>${level.title}</span>
+              <span>•</span>
+              <span class="bg-slate-100 px-2 py-0.5 rounded text-slate-600">${topic.type}</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">${topic.title}</h1>
+          </div>
+
+          <label class="flex items-center gap-2 cursor-pointer bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-200 transition">
+            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleComplete('${itemKey}', this.checked)" class="rounded text-arduinoteal focus:ring-0">
+            <span class="text-xs font-bold text-slate-700">Completado</span>
+          </label>
+        </div>
+
+        <div class="prose max-w-none text-slate-700">
+          ${topic.content}
+        </div>
+
+        <!-- Navigation Buttons Bottom -->
+        <div class="mt-10 pt-6 border-t border-slate-200 flex justify-between items-center text-sm">
+          <button onclick="navigatePrev()" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-100 font-semibold text-xs flex items-center gap-2">
+            <i class="fa-solid fa-chevron-left"></i> Anterior
+          </button>
+          <button onclick="navigateNext()" class="px-4 py-2 bg-arduinoteal text-white rounded-lg hover:bg-arduinodark font-semibold text-xs flex items-center gap-2 shadow">
+            Siguiente <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      `;
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // COMPLETION TRACKER LOGIC
+    function toggleComplete(key, status) {
+      if (status) {
+        completedTopics[key] = true;
+      } else {
+        delete completedTopics[key];
+      }
+      localStorage.setItem('arduino_completed', JSON.stringify(completedTopics));
+      updateProgressUI();
+      buildNavigation();
+    }
+
+    function updateProgressUI() {
+      let total = 0;
+      courseData.forEach(l => total += l.topics.length);
+      let count = Object.keys(completedTopics).length;
+      let percent = Math.round((count / total) * 100);
+
+      document.getElementById('overallProgress').innerText = `${percent}% Completado`;
+    }
+
+    // NEXT / PREVIOUS NAVIGATION
+    function navigateNext() {
+      if (currentTopicIndex < courseData[currentLevelIndex].topics.length - 1) {
+        selectTopic(currentLevelIndex, currentTopicIndex + 1);
+      } else if (currentLevelIndex < courseData.length - 1) {
+        selectTopic(currentLevelIndex + 1, 0);
+      } else {
+        renderHome();
+      }
+    }
+
+    function navigatePrev() {
+      if (currentTopicIndex > 0) {
+        selectTopic(currentLevelIndex, currentTopicIndex - 1);
+      } else if (currentLevelIndex > 0) {
+        const prevLevelIdx = currentLevelIndex - 1;
+        const lastTopicIdx = courseData[prevLevelIdx].topics.length - 1;
+        selectTopic(prevLevelIdx, lastTopicIdx);
+      } else {
+        renderHome();
+      }
+    }
+
+    function navigateTo(target) {
+      if (target === 'home') renderHome();
+    }
+
+    // SIMULATOR FUNCTIONS
+    function simularPWM() {
+      const potVal = document.getElementById('potSlider').value;
+      const pwmVal = Math.round((potVal / 1023) * 255);
+      
+      document.getElementById('potVal').innerText = potVal;
+      document.getElementById('pwmVal').innerText = `${pwmVal} (PWM)`;
+
+      const led = document.getElementById('simLed');
+      if (led) {
+        const opacity = (pwmVal / 255).toFixed(2);
+        led.style.opacity = Math.max(0.15, opacity);
+        led.style.boxShadow = `0 0 ${pwmVal / 10}px rgba(251, 191, 36, ${opacity})`;
+      }
+    }
+
+    function simularUltrasonido() {
+      const dist = document.getElementById('ultraSlider').value;
+      const echoUs = Math.round(dist * 58);
+      
+      document.getElementById('distText').innerText = `${dist} cm`;
+      document.getElementById('echoTime').innerText = echoUs;
+    }
+
+    // SEARCH FUNCTIONALITY
+    function searchTopics() {
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
+      const resultsContainer = document.getElementById('searchResults');
+
+      if (!query) {
+        resultsContainer.classList.add('hidden');
+        return;
+      }
+
+      let matches = [];
+      courseData.forEach((level, lIdx) => {
+        level.topics.forEach((topic, tIdx) => {
+          if (topic.title.toLowerCase().includes(query) || topic.desc.toLowerCase().includes(query)) {
+            matches.push({ levelTitle: level.title, topic, lIdx, tIdx });
+          }
+        });
+      });
+
+      if (matches.length === 0) {
+        resultsContainer.innerHTML = `<div class="p-3 text-xs text-slate-500 text-center">No se encontraron prácticas con "${query}"</div>`;
+      } else {
+        resultsContainer.innerHTML = matches.map(m => `
+          <div class="p-2.5 hover:bg-slate-100 cursor-pointer border-b border-slate-100 last:border-0" onclick="selectTopic(${m.lIdx}, ${m.tIdx}); document.getElementById('searchResults').classList.add('hidden');">
+            <div class="text-[10px] font-bold text-arduinoteal uppercase">${m.levelTitle}</div>
+            <div class="text-xs font-bold text-slate-800">${m.topic.title}</div>
+            <div class="text-[11px] text-slate-500 truncate">${m.topic.desc}</div>
+          </div>
+        `).join('');
+      }
+
+      resultsContainer.classList.remove('hidden');
+    }
+
+    // MOBILE SIDEBAR TOGGLE
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('hidden');
+    }
+
+    // PWA: registro del service worker y chip de versión
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        // Registro relativo: el SW queda confinado a la carpeta de la app,
+        // sin afectar al portal que la aloja (p. ej. tecdea.github.io).
+        navigator.serviceWorker.register('sw.js').catch((err) => {
+          console.warn('No se pudo registrar el service worker:', err);
+        });
+
+        const updateVersionChip = (version) => {
+          const chip = document.getElementById('versionChip');
+          if (chip) chip.innerHTML = `<i class="fa-solid fa-tag text-[0.6rem]"></i> v${version}`;
+        };
+
+        const askVersion = (sw) => {
+          if (sw) sw.postMessage({ type: 'GET_VERSION' });
+        };
+
+        // La versión vive en sw.js; se consulta al SW activo.
+        if (navigator.serviceWorker.controller) {
+          askVersion(navigator.serviceWorker.controller);
+        } else {
+          navigator.serviceWorker.ready.then((reg) => askVersion(reg.active));
+        }
+        navigator.serviceWorker.addEventListener('message', (e) => {
+          if (e.data && e.data.type === 'APP_VERSION') updateVersionChip(e.data.version);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
