@@ -1062,7 +1062,31 @@
       sidebar.classList.toggle('hidden');
     }
 
-    // PWA: registro del service worker y chip de versión
+    // PWA: registro del service worker y chip de versión.
+    // La versión de la app vive en sw.js (const APP_VERSION). El chip del
+    // banner la pide al SW activo y, si este no responde o no está disponible
+    // (sin soporte, contexto inseguro, instalación fallida...), la extrae
+    // directamente del fichero sw.js como último recurso.
+    const updateVersionChip = (version) => {
+      const chip = document.getElementById('versionChip');
+      if (chip && version) chip.innerHTML = `<i class="fa-solid fa-tag text-[0.6rem]"></i> v${version}`;
+    };
+
+    const askVersion = (sw) => {
+      if (sw && sw.postMessage) sw.postMessage({ type: 'GET_VERSION' });
+    };
+
+    // Último recurso: leer sw.js y extraer APP_VERSION con una expresión regular.
+    const fallbackVersionFromSwFile = () => {
+      fetch('sw.js')
+        .then((res) => (res.ok ? res.text() : Promise.reject(new Error('HTTP ' + res.status))))
+        .then((text) => {
+          const match = text.match(/APP_VERSION\s*=\s*['"]([^'"]+)['"]/);
+          if (match) updateVersionChip(match[1]);
+        })
+        .catch(() => { /* el chip conserva el valor que ya tenga */ });
+    };
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         // Registro relativo: el SW queda confinado a la carpeta de la app,
@@ -1071,14 +1095,10 @@
           console.warn('No se pudo registrar el service worker:', err);
         });
 
-        const updateVersionChip = (version) => {
-          const chip = document.getElementById('versionChip');
-          if (chip) chip.innerHTML = `<i class="fa-solid fa-tag text-[0.6rem]"></i> v${version}`;
-        };
-
-        const askVersion = (sw) => {
-          if (sw) sw.postMessage({ type: 'GET_VERSION' });
-        };
+        // Respuesta del SW: actualiza el chip con la versión activa.
+        navigator.serviceWorker.addEventListener('message', (e) => {
+          if (e.data && e.data.type === 'APP_VERSION') updateVersionChip(e.data.version);
+        });
 
         // La versión vive en sw.js; se consulta al SW activo.
         if (navigator.serviceWorker.controller) {
@@ -1086,10 +1106,23 @@
         } else {
           navigator.serviceWorker.ready.then((reg) => askVersion(reg.active));
         }
-        navigator.serviceWorker.addEventListener('message', (e) => {
-          if (e.data && e.data.type === 'APP_VERSION') updateVersionChip(e.data.version);
+
+        // Si un SW nuevo toma el control (versión recién desplegada), se
+        // vuelve a preguntar para que el chip se actualice en caliente.
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          askVersion(navigator.serviceWorker.controller);
         });
+
+        // Si a los 1,5 s el SW no ha contestado, se extrae la versión del
+        // propio fichero sw.js (cubre instalaciones fallidas, etc.).
+        setTimeout(() => {
+          const chip = document.getElementById('versionChip');
+          if (chip && chip.textContent.includes('—')) fallbackVersionFromSwFile();
+        }, 1500);
       });
+    } else {
+      // Sin service worker: versión leída directamente de sw.js.
+      window.addEventListener('load', fallbackVersionFromSwFile);
     }
   </script>
 </body>
