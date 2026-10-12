@@ -4,7 +4,7 @@
 
 // Versión de la app: se muestra en el chip del banner. Al cambiarla,
 // se activa un nuevo SW y se purga la caché antigua.
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.1.0';
 
 const CACHE_NAME = `arduino-academy-v${APP_VERSION}`;
 
@@ -78,7 +78,7 @@ self.addEventListener('fetch', (event) => {
 
 // Responde con la versión actual cuando la página la pide (chip del banner).
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'GET_VERSION') {
+  if (event.data && event.data.type === 'GET_VERSION' && event.source) {
     event.source.postMessage({ type: 'APP_VERSION', version: APP_VERSION });
   }
 });
